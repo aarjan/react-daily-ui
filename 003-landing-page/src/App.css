@@ -96,6 +96,9 @@ p {
   margin-right: 10px;
   -webkit-transition: margin .125s ease;
   transition: margin .125s ease;
+  font-size: 2em;
+  color:red;
+  font-weight: 600;
 }
 .Logo svg {
   -webkit-transform: scale(0.5);
@@ -112,7 +115,7 @@ p {
   cursor: pointer;
   margin-top: 2px;
 }
-.Logo:hover svg path {
+.Logo:hover {
   fill: #ffffff !important;
 }
 
@@ -152,7 +155,7 @@ p {
           justify-content: center;
   width: 100%;
   position: absolute;
-  left:0;
+  left:20px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -188,6 +191,10 @@ p {
   width: 30%;
 }
 
+.none{
+  font-size: 20em;
+  color:white;
+}
 .UserProfile {
   margin-left: auto;
 }

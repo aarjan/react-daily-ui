@@ -1,91 +1,57 @@
-import React from 'react';
-import Logo from './Logo.js';
-import './App.css';
+import './App.css'
+import React from "react";
 
-/////////////////
-/// COMPONENTS //
-/////////////////
 
-// Container
-var App = React.createClass({
-  apiKey: '87dfa1c669eea853da609d4968d294be',
-  getInitialState: function() {
-    return {searchTerm:"", searchUrl:""};
-  },
-  handleKeyUp :function(e){
-    if (e.key === 'Enter' && this.state.searchTerm !== '') {
-      var searchUrl = "search/multi?query=" + this.state.searchTerm + "&api_key=" + this.apiKey;
-      this.setState({searchUrl:searchUrl});
-    }
-  },
+const Navigation =() => {
+  return (
+  <div className="Navigation" >
+    <nav>
+      <ul>
+        <li>Browse</li>
+        <li>My list</li>
+        <li>Top picks</li>
+        <li>Recent</li>
+      </ul>
+    </nav>  
+  </div>
+  )
+}
 
-  handleChange : function(e){
-      this.setState({searchTerm : e.target.value});    
-  },
-  render: function() {
-    return (
-      <div>
-        <header className="Header">
-          <Logo />
-          <Navigation />
-          <div id="search" className="Search">
-            <input onKeyUp={this.handleKeyUp} onChange={this.handleChange} type="search" placeholder="Search for a title..." value={this.state.searchTerm}/>
-          </div>
-          <UserProfile />
-        </header>
-        <Hero />
-        <TitleList title="Search Results" url={this.state.searchUrl} />
-        <TitleList title="Top TV picks for Jack" url='discover/tv?sort_by=popularity.desc&page=1' />
-        <TitleList title="Trending now" url='discover/movie?sort_by=popularity.desc&page=1' />
-        <TitleList title="Most watched in Horror" url='genre/27/movies?sort_by=popularity.desc&page=1' />
-        <TitleList title="Sci-Fi greats" url='genre/878/movies?sort_by=popularity.desc&page=1' />
-        <TitleList title="Comedy magic" url='genre/35/movies?sort_by=popularity.desc&page=1' />
+const Search = ({onChange,onSubmit,value}) => {
+  return (
+    <div className="Search" >
+      <input type="search" placeholder="Search for a title" value={value} onKeyUp={(e)=> onSubmit(e)} onChange={(e) => onChange(e)} />
+    </div>
+  )
+}
+
+const Profile = () => {
+  return (
+  <div className="UserProfile" >
+    <div className="User">
+      <div className="name">Sarah Johnson</div>
+      <div className="image">
+        <img alt="user profile" src="http://preview.byaviators.com/template/superlist/assets/img/tmp/agent-2.jpg"/>
       </div>
-    );
-  }
-});
+    </div>
+  </div>
+  )
+}
 
+const Header = ({onChange,onSubmit,value}) => {
+  return (
+    <div className="Header">
+      <div className="Logo">NETFLIX</div>
+      <Navigation/>
+      <Search onChange={onChange} onSubmit={onSubmit} value={value}/>
+      <Profile/>
+    </div>
+  )
+}
 
-// Navigation
-var Navigation = React.createClass({
-  render: function() {
-    return (
-      <div id="navigation" className="Navigation">
-        <nav>
-          <ul>
-            <li>Browse</li>
-            <li>My list</li>
-            <li>Top picks</li>
-            <li>Recent</li>
-          </ul>
-        </nav>
-      </div>
-    );
-  }
-});
-
-// User Profile
-var UserProfile = React.createClass({
-  render: function() {
-    return (
-      <div className="UserProfile">
-        <div className="User">
-          <div className="name">Jack Oliver</div>
-          <div className="image"><img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/557257/profile/profile-512_1.jpg" alt="profile" /></div>
-        </div>
-      </div>
-    );
-  }
-});
-
-//////////
-// Hero //
-//////////
-
-var Hero = React.createClass({
-  render: function() {
-    return (
-      <div id="hero" className="Hero" style={{backgroundImage: 'url(https://images.alphacoders.com/633/633643.jpg)'}}>
+const Hero = () => {
+  return (
+    <div id="hero" className="Hero" style={{backgroundImage: 'url(https://images.alphacoders.com/633/633643.jpg)'}}>
         <div className="content">
           <img className="logo" src="http://www.returndates.com/backgrounds/narcos.logo.png" alt="narcos background" />
           <h2>Season 2 now available</h2>
@@ -97,133 +63,146 @@ var Hero = React.createClass({
         </div>
         <div className="overlay"></div>
       </div>
-    );
-  }
-})
-
-// Hero Button
-var HeroButton = React.createClass({
-  render: function() {
+  )
+}
+const HeroButton = ({primary,text}) => {
     return (
-      <a href="#" className="Button" data-primary={this.props.primary}>{this.props.text}</a>
+      <a href="#" className="Button" data-primary={primary}>{text}</a>
     );
+}
+
+class ListToggle extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      toggled:false
+    }
   }
-})
+  handleClick = () => {
+    const toggleState = this.state.toggled
+    this.setState({
+      toggled:toggleState?false:true
+    })
+  }
+  render() {
+    return (
+      <div className="ListToggle" data-toggled={this.state.toggled} onClick={this.handleClick} >
+        <div>
+        <i className="fa fa-fw fa-plus"></i>
+        <i className="fa fa-fw fa-check"></i>
+        </div>
+      </div>
+    ) 
+  }
+}
 
-////////////////
-// Title List //
-////////////////
+const Item = ({title,rating,plot,backDrop}) => {
+  return (
+    <div className="Item" style={{backgroundImage: 'url(' +backDrop + ')'}} >
+      <div className="overlay">
+        <div className="title">{title}</div>
+        <div className="rating">{rating} / 10</div>
+        <div className="plot">{plot}</div>
+        <ListToggle/>
+      </div>
+    </div>
+  )
+}
 
-// Title List Container
+class TitleList extends React.Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: [],
+      mounted:false,
+    };
+    // this.loadContent = this.loadContent.bind(this);
+  }
 
-var TitleList = React.createClass({
-
-  apiKey: '87dfa1c669eea853da609d4968d294be',
-  getInitialState: function() {
-    return {data: [], mounted: false};
-  },
-  loadContent: function() {
-    var requestUrl = 'https://api.themoviedb.org/3/' + this.props.url + '&api_key=' + this.apiKey;
-    fetch(requestUrl).then((response)=>{
-        return response.json();
-    }).then((data)=>{
-        this.setState({data : data});
-    }).catch((err)=>{
-        console.log("There has been an error");
-    });
-  },
-  componentWillReceiveProps : function(nextProps){
+  loadContent = () => {
+    var requestUrl = 'https://api.themoviedb.org/3/' + this.props.url;
+    fetch(requestUrl)
+    .then(response => response.json())
+    .then(content => this.setState({data:content.results}))
+    .catch(err => console.log("error",err));
+  }
+  
+  componentWillReceiveProps(nextProps) {
     if(nextProps.url !== this.props.url && nextProps.url !== ''){
-      this.setState({mounted:true,url:nextProps.url},()=>{
+      // not understood; why not as in componentDidMount()
+      this.setState({mounted:true},()=>{
         this.loadContent();
       });
-      
     }
-  },
-  componentDidMount: function() {
-    if(this.props.url !== ''){
+  }
+  componentDidMount() {
+    if (this.props.url!=="") {
       this.loadContent();
-      this.setState({mounted:true});
+      this.setState({mounted:true})
     }
-    
-  },
-  render: function() {
-    var titles ='';
-    if(this.state.data.results) {
-      titles = this.state.data.results.map(function(title, i) {
-        if(i < 5) {
-          var name = '';
-          var backDrop = 'http://image.tmdb.org/t/p/original' + title.backdrop_path;
-          if(!title.name) {
-            name = title.original_title;
-          } else {
-            name = title.name;
-          }
+  }
 
-          return (
-            <Item key={title.id} title={name} score={title.vote_average} overview={title.overview} backdrop={backDrop} />
-          );  
-
-        }else{
-          return (<div key={title.id}></div>);
+  render() {
+    var titles = ""
+    if (this.state.data){
+      titles = this.state.data.map((d,i)=> {
+        if (i<5){
+          let backDrop = 'http://image.tmdb.org/t/p/original' + d.backdrop_path;
+          return <Item key={d.id} title={d.name} rating={d.vote_average} plot={d.overview} backDrop={backDrop}/>
+        }else {
+          return <div key={d.id}></div>
         }
-      }); 
-
-    } 
-    
-    return (
-      <div ref="titlecategory" className="TitleList" data-loaded={this.state.mounted}>
-        <div className="Title">
-          <h1>{this.props.title}</h1>
-          <div className="titles-wrapper">
-            {titles}
-          </div>
-        </div>
-      </div>
-    );
-  }
-});
-
-// Title List Item
-var Item = React.createClass({
-  render: function() {
-    return (
-      <div className="Item" style={{backgroundImage: 'url(' + this.props.backdrop + ')'}} >
-        <div className="overlay">
-          <div className="title">{this.props.title}</div>
-          <div className="rating">{this.props.score} / 10</div>
-          <div className="plot">{this.props.overview}</div>
-          <ListToggle />
-        </div>
-      </div>
-    );
-  }
-});
-
-// ListToggle
-var ListToggle = React.createClass({
-  getInitialState: function() {
-    return({ toggled: false })
-  },
-  handleClick: function() {
-    if(this.state.toggled === true) {
-      this.setState({ toggled: false });
-    } else {
-      this.setState({ toggled: true }); 
+      })
     }
     
-  },
-  render: function() {
     return (
-      <div onClick={this.handleClick} data-toggled={this.state.toggled} className="ListToggle">
-        <div>
-          <i className="fa fa-fw fa-plus"></i>
-          <i className="fa fa-fw fa-check"></i>
+    <div  ref="titlecategory" className="TitleList" data-loaded={this.state.mounted}>
+      <div className="Title">
+        <h1>{this.props.title}</h1>
+        <div className="titles-wrapper">
+          {titles}
         </div>
       </div>
-    );
+    </div>
+    )
   }
-});
+}
 
 
-export default App;
+export default class App extends React.Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      searchTerm:"",
+      searchUrl:""
+    }
+    this.apiKey = '87dfa1c669eea853da609d4968d294be'
+  }
+  
+  handleChange = (e) => {
+    this.setState({searchTerm:e.target.value})
+  }
+  
+  handleKeyUp = (e) => {
+    if (e.key === 'Enter' && this.state.searchTerm !== '') {
+      var searchUrl = "search/multi?query=" + this.state.searchTerm + "&api_key=" + this.apiKey;
+      this.setState({searchUrl:searchUrl});
+    }
+  }
+
+  render(){
+    return (
+      <div>
+        <Header onChange={this.handleChange} onSubmit={this.handleKeyUp} value={this.state.searchTerm}/>
+        <Hero/>
+        <TitleList title="Search Results" url={this.state.searchUrl} />
+        <TitleList title="Top TV picks for Jack" url={'discover/tv?sort_by=popularity.desc&page=1&api_key=87dfa1c669eea853da609d4968d294be'}/>
+        <TitleList title="Trending now" url={'discover/movie?sort_by=popularity.desc&page=1&api_key=87dfa1c669eea853da609d4968d294be'} />
+        <TitleList title="Most watched in Horror" url={'genre/27/movies?sort_by=popularity.desc&page=1&api_key=87dfa1c669eea853da609d4968d294be' } />
+        <TitleList title="Sci-Fi greats" url={'genre/878/movies?sort_by=popularity.desc&page=1&api_key=87dfa1c669eea853da609d4968d294be'} />
+        <TitleList title="Comedy magic" url={'genre/35/movies?sort_by=popularity.desc&page=1&api_key=87dfa1c669eea853da609d4968d294be'} />
+      </div>
+    )
+  }
+}
+
